@@ -1,0 +1,56 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum WorkspaceRole { OWNER ADMIN EDITOR COMMENTER VIEWER }
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String
+  createdAt DateTime @default(now())
+  memberships Membership[]
+  comments Comment[]
+}
+model Workspace {
+  id String @id @default(cuid())
+  name String
+  createdAt DateTime @default(now())
+  memberships Membership[]
+  pages Page[]
+}
+model Membership {
+  id String @id @default(cuid())
+  userId String
+  workspaceId String
+  role WorkspaceRole @default(EDITOR)
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Cascade)
+  @@unique([userId, workspaceId])
+}
+model Page {
+  id String @id @default(cuid())
+  title String @default("Untitled")
+  workspaceId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Cascade)
+  comments Comment[]
+  snapshots Snapshot[]
+}
+model Comment {
+  id String @id @default(cuid())
+  body String
+  pageId String
+  userId String
+  createdAt DateTime @default(now())
+  page Page @relation(fields:[pageId], references:[id], onDelete:Cascade)
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+}
+model Snapshot {
+  id String @id @default(cuid())
+  label String?
+  state String
+  pageId String
+  createdAt DateTime @default(now())
+  page Page @relation(fields:[pageId], references:[id], onDelete:Cascade)
+}
