@@ -1,0 +1,9 @@
+import { useState } from "react";
+import { Link,useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+export default function Auth({mode="login"}){
+ const {login,register}=useAuth(),nav=useNavigate(),[form,setForm]=useState({name:"",email:"",password:"",phone:""}),[error,setError]=useState(""),[busy,setBusy]=useState(false);
+ const change=e=>setForm({...form,[e.target.name]:e.target.value});
+ const submit=async e=>{e.preventDefault();setBusy(true);setError("");try{if(mode==="login")await login(form.email,form.password);else await register(form);nav("/");}catch(e){setError(e.response?.data?.message||"Something went wrong");}finally{setBusy(false);}};
+ return <div className="auth-wrap"><form className="auth-card" onSubmit={submit}><span className="eyebrow">WELCOME TO MARKETHUB</span><h1>{mode==="login"?"Welcome back":"Create your account"}</h1><p className="muted">{mode==="login"?"Sign in to continue shopping.":"Join our community of shoppers and sellers."}</p>{mode==="register"&&<><label>Full name<input name="name" required value={form.name} onChange={change} placeholder="Your name"/></label><label>Phone<input name="phone" value={form.phone} onChange={change} placeholder="Phone number"/></label></>}<label>Email address<input type="email" name="email" required value={form.email} onChange={change} placeholder="you@example.com"/></label><label>Password<input type="password" name="password" minLength="8" required value={form.password} onChange={change} placeholder="At least 8 characters"/></label>{error&&<div className="error-box">{error}</div>}<button className="button primary full" disabled={busy}>{busy?"Please wait…":mode==="login"?"Sign in":"Create account"}</button><p className="auth-switch">{mode==="login"?"New to MarketHub?":"Already have an account?"} <Link to={mode==="login"?"/register":"/login"}>{mode==="login"?"Create account":"Sign in"}</Link></p></form></div>;
+}
